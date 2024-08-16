@@ -17,6 +17,7 @@ class RecNode(Node):
 
         # Path to save CSV file
         self.output_csv_dir = '/home/guts/Documents/accel_data/'
+        self.external_media_dir = '/media/guts/SD/accel_data_sd'
         
         self.current_date = datetime.datetime.today().strftime("%Y-%m-%d")
         self.output_csv_path = os.path.join(self.output_csv_dir, f'{self.current_date}.csv')
@@ -50,7 +51,7 @@ class RecNode(Node):
         
         # Create timers to perform the operation every "x" seconds
         self.timer1 = self.create_timer(1.0, self.timer_callback)
-        self.timer2 = self.create_timer(60.0, self.sync_data)
+        self.timer2 = self.create_timer(10.0, self.sync_data)
 
         self.get_logger().info('Hello from Olive EDGE!')
 
@@ -114,9 +115,14 @@ class RecNode(Node):
             self.get_logger().info('Data written to CSV file!')
     
     def sync_data(self):
-        # Synchronize data to the cloud
-        sync('/home/guts/Documents/accel_data/', '/media/guts/SD/accel_data_sd', 'sync')
-        self.get_logger().info('Data synchronized to the cloud!')
+
+        if os.path.exists(self.external_media_dir):
+            self.get_logger().info('External media detected!')
+            # Synchronize data to external media
+            sync(self.output_csv_dir, self.external_media_dir, 'sync')
+            self.get_logger().info('Data synchronized to the external media!')
+        else:
+            self.get_logger().info('External media not detected!')
 
     def destroy_node(self):
         # Close CSV file when node is shutting down
