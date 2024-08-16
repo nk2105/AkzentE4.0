@@ -8,6 +8,7 @@ from rclpy.node import Node
 import os
 from sensor_msgs.msg import Imu
 from geometry_msgs.msg import AccelStamped
+from dirsync import sync
 
 class RecNode(Node):
 
@@ -49,6 +50,7 @@ class RecNode(Node):
         
         # Create timers to perform the operation every "x" seconds
         self.timer1 = self.create_timer(1.0, self.timer_callback)
+        self.timer2 = self.create_timer(60.0, self.sync_data)
 
         self.get_logger().info('Hello from Olive EDGE!')
 
@@ -110,6 +112,11 @@ class RecNode(Node):
             self.csv_file.flush()
             os.fsync(self.csv_file.fileno())
             self.get_logger().info('Data written to CSV file!')
+    
+    def sync_data(self):
+        # Synchronize data to the cloud
+        sync('/home/guts/Documents/accel_data/', '/media/guts/SD/accel_data_sd', 'sync')
+        self.get_logger().info('Data synchronized to the cloud!')
 
     def destroy_node(self):
         # Close CSV file when node is shutting down
